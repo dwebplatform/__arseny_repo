@@ -76,6 +76,7 @@ export class AuthController {
     @Req() req: Request,
     @Body() body: { password: string; email: string },
   ) {
+    console.log(req)
     let user = null;
     try {
       user = await this.userService.createUserFromRequest(body);
@@ -87,7 +88,7 @@ export class AuthController {
         );
       }
     }
-
+    console.log(user)
     const {
       accessToken,
       expiresIn,
