@@ -82,7 +82,6 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
     @Body() body: { password: string; email: string },
   ) {
-    console.log(req)
     let user = null;
     try {
       user = await this.userService.createUserFromRequest(body);

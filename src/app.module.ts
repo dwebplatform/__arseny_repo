@@ -16,7 +16,7 @@ import { User } from './entities/user.entity';
       password: '1234',
       database: 'arseny_db',
       entities: [User],
-      synchronize: true,
+      synchronize: false,
     }),
   ],
   controllers: [AppController],
