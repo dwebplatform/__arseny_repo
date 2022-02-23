@@ -5,24 +5,15 @@ import { AuthModule } from './auth/auth.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 
-/**
-
-@Module({
-  imports: [
-   
-  ],
-})
-export class AppModule {}
- */
 @Module({
   imports: [
     AuthModule,
     TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: 'localhost',
-      port: 3306,
-      username: 'root',
-      password: '',
+      type: 'postgres',
+      host: '127.0.0.1',
+      port: 5432,
+      username: 'postgres',
+      password: '1234',
       database: 'arseny_db',
       entities: [User],
       synchronize: false,

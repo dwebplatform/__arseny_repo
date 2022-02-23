@@ -7,7 +7,9 @@ import {
   HttpStatus,
   Request,
   Headers,
+  Response,
   Req,
+  Res,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { AuthService } from './auth.service';
@@ -26,9 +28,10 @@ export class AuthController {
   async getAccessTokenByRefresh(@Req() request: Request) {
     //* берем рефреш из сессии, парсим, находим пользователя создаем по нему новый accessToken с временем жизни отдаем обратно
     //@ts-ignore
+    const { refreshToken } = request.cookies;
     const user = await this.userService.getUserByRefreshToken(
       //@ts-ignore
-      request.session.refreshToken,
+      refreshToken,
     );
     //* generate new accessToken
     const {
@@ -40,8 +43,10 @@ export class AuthController {
 
   //* тестовый запрос
   @Post('/test-protected')
-  async protectedPath(@Headers() headers: any) {
+  async protectedPath(@Req() req: Request, @Headers() headers: any) {
+    //@ts-ignore
     const { authorization } = headers;
+
     const token = authorization.split(' ')[1];
     if (!token) {
       throw new HttpException({ status: 'error' }, HttpStatus.BAD_REQUEST);
@@ -74,6 +79,7 @@ export class AuthController {
   @Post('/sign-up')
   async signUp(
     @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
     @Body() body: { password: string; email: string },
   ) {
     let user = null;
@@ -94,14 +100,16 @@ export class AuthController {
     } = await this.authService.generateAccessToken(user);
     const { refreshToken } = await this.authService.generateRefreshToken(user);
     //@ts-ignore
-    req.session.refreshToken = refreshToken;
-    //*todo убрать refresh token из выдачи:
-    return { accessToken, expiresIn, refreshToken };
+    res.cookie('refreshToken', refreshToken, {
+      sameSite: 'strict',
+      httpOnly: true,
+    });
+    return { accessToken, expiresIn };
   }
   //*войти в сущ учетку
   @Post('/sign-in')
   async signIn(
-    @Req() request: Request,
+    @Res({ passthrough: true }) res: Response,
     @Body() body: { email: string; password: string },
   ) {
     //* найти юзера по почте, сравнить plainPassword, с hashPassword-> если все ок то создать accessToken, refreshToken
@@ -136,7 +144,12 @@ export class AuthController {
     const { refreshToken } = await this.authService.generateRefreshToken(user);
     //* store in session request token:
     //@ts-ignore
-    request.session.refreshToken = refreshToken;
+    // request.session.refreshToken = refreshToken;
+    //@ts-ignore
+    res.cookie('refreshToken', refreshToken, {
+      sameSite: 'strict',
+      httpOnly: true,
+    });
     return {
       accessToken,
       expiresIn,
