@@ -106,7 +106,7 @@ export class AuthController {
         );
       }
     }
-
+    console.log(user)
     const {
       accessToken,
       expiresIn,
