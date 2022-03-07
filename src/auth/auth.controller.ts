@@ -10,6 +10,7 @@ import {
   Response,
   Req,
   Res,
+  UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { AuthService } from './auth.service';
@@ -17,6 +18,8 @@ import { comparePassword, verifyToken } from './utils/secureUtils';
 
 import * as jwt from 'jsonwebtoken';
 import { UserExistError } from './utils/customErrors';
+import { AuthGuard } from './../guars/auth.guard';
+import { Role, Roles } from '../user/roles';
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -41,13 +44,23 @@ export class AuthController {
     return { accessToken, expiresIn };
   }
 
+  @Get('/test-protected-by-guards')
+  @Roles(Role.ADMIN)
+  @UseGuards(AuthGuard)
+  getProtectedByGuards() {
+    return {
+      status: 'ok',
+      msg: 'Hello there',
+    };
+  }
+
   //* тестовый запрос
   @Post('/test-protected')
   async protectedPath(@Req() req: Request, @Headers() headers: any) {
     //@ts-ignore
     const { authorization } = headers;
-
     const token = authorization.split(' ')[1];
+
     if (!token) {
       throw new HttpException({ status: 'error' }, HttpStatus.BAD_REQUEST);
     }

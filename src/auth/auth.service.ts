@@ -10,7 +10,7 @@ export class AuthService {
       {
         id: user.id,
         email: user.email,
-        type: 'user',
+        role: user.role,
       },
       expiresIn,
     );
@@ -22,7 +22,7 @@ export class AuthService {
       {
         id: user.id,
         email: user.email,
-        type: 'user',
+        role: user.role,
       },
       expiresIn,
     );
