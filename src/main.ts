@@ -18,6 +18,6 @@ async function bootstrap() {
   app.enableCors(options);
   app.use(cookieParser());
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
-  await app.listen(5000);
+  await app.listen(8080);
 }
 bootstrap();
