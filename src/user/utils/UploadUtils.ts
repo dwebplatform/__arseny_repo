@@ -1,23 +1,50 @@
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { v4 as uuidv4 } from 'uuid';
-import { diskStorage } from 'multer';
+import { Request } from '@nestjs/common'
+const { diskStorage } = require('multer');
+import {v4 as uuidv4 } from 'uuid';
+const formidable = require('formidable');
+const fs = require('fs');
 
-import path = require('path');
+async function  createFolter(dir:string) {
+  return new Promise((resolve, reject)=>{
+    fs.mkdir(dir, { recursive: true }, (err) => {
+      if(err) return reject(err);
+      return resolve(dir);
+  });
+  });
+}
+export const formidableUpload = async (req: Request, id:number)=>{
+  const form  = new formidable.IncomingForm();
+  return new Promise((resolve,reject)=>{
+    form.parse(req,async(err,fields,files)=>{
+      if(err){
+        return reject(err);
+      }
+      const oldPath = files.file.filepath;
 
-import { config } from './../../config';
+      const initialDir = '/uploads/'+ id;
+      const dir  = await createFolter('.'+ initialDir);
+      const [name, ext] = files.file.originalFilename.split('.');
+
+      const finalFileName = name + uuidv4() +'.' + ext;
+      const newPath = dir +'/' + finalFileName;
+      const rawData = fs.readFileSync(oldPath);
+
+      fs.writeFile(newPath,rawData,(err)=>{
+        if(err){
+          return reject(err);
+        }
+        return resolve({fields,files,form,newPath: initialDir +'/'+ finalFileName});
+      });
+    });
+  })
+}
 
 export const createStorage = () => {
   const storage = {
     storage: diskStorage({
-      destination: `./${config.staticPath}/${config.storeImagePath}`,
+      destination: `./uploads`,
       filename: (req, file, cb) => {
-        //*1
-        const filename: string =
-          path.parse(file.originalname).name.replace(/\s/g, '') + uuidv4();
-        const extension: string = path.parse(file.originalname).ext;
-        //*2
-        cb(null, `${filename}${extension}`);
+        cb(null, file.originalname)
       },
     }),
   };
