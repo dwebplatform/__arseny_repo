@@ -12,20 +12,28 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
+
 import { UserService } from './user.service';
 import { AuthService } from './auth.service';
+
 import { comparePassword, verifyToken } from './utils/secureUtils';
 
 import * as jwt from 'jsonwebtoken';
 import { UserExistError } from './utils/customErrors';
 import { AuthGuard } from './../guars/auth.guard';
 import { Role, Roles } from '../user/roles';
+import { MailerService } from '@nestjs-modules/mailer';
+
+import { User } from '../decorators/user.decorator';
+
 @Controller('auth')
 export class AuthController {
   constructor(
     private userService: UserService,
     private authService: AuthService,
+    private readonly mailerService: MailerService,
   ) {}
+
 
   @Post('/access-by-refresh')
   async getAccessTokenByRefresh(@Req() request: Request) {
@@ -33,7 +41,6 @@ export class AuthController {
     //@ts-ignore
     const { refreshToken } = request.cookies;
     const user = await this.userService.getUserByRefreshToken(
-      //@ts-ignore
       refreshToken,
     );
     //* generate new accessToken
@@ -54,38 +61,24 @@ export class AuthController {
     };
   }
 
-  //* тестовый запрос
-  @Post('/test-protected')
-  async protectedPath(@Req() req: Request, @Headers() headers: any) {
+ 
+  @Post('/sign-out')
+  signOut(
+    @Res({ passthrough: true }) res: Response){
     //@ts-ignore
-    const { authorization } = headers;
-    const token = authorization.split(' ')[1];
-
-    if (!token) {
-      throw new HttpException({ status: 'error' }, HttpStatus.BAD_REQUEST);
+    res.clearCookie('refreshToken');
+    return {
+      status:"ok",
+      msg:"Sign out successfully"
     }
-    const products = [
-      { id: 1, name: 'product 1 ' },
-      { id: 2, name: 'Product 2' },
-      { id: 3, name: 'Product 3' },
-    ];
-    try {
-      const decoded = await verifyToken(token);
-      return {
-        products,
-      };
-    } catch (err) {
-      if (err instanceof jwt.TokenExpiredError) {
-        //* время токена истекло, надо стучаться в getAccessTokenByRefresh
-        throw new HttpException(
-          { status: 'error', msg: 'время токена истекло' },
-          HttpStatus.UNAUTHORIZED,
-        );
-      }
-      throw new HttpException(
-        { status: 'error', msg: 'не авторизованный пользователь' },
-        HttpStatus.BAD_REQUEST,
-      );
+  }
+  @Get('/who-am-i')
+  @Roles(Role.USER)
+  @UseGuards(AuthGuard)
+  whoAmI(@User() user: any){
+    return {
+      status:"ok",
+      user: user,
     }
   }
   //* зарегаться в первый раз
@@ -106,7 +99,6 @@ export class AuthController {
         );
       }
     }
-    console.log(user)
     const {
       accessToken,
       expiresIn,
@@ -156,8 +148,6 @@ export class AuthController {
     } = await this.authService.generateAccessToken(user);
     const { refreshToken } = await this.authService.generateRefreshToken(user);
     //* store in session request token:
-    //@ts-ignore
-    // request.session.refreshToken = refreshToken;
     //@ts-ignore
     res.cookie('refreshToken', refreshToken, {
       sameSite: 'strict',

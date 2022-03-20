@@ -10,9 +10,37 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { ChallengeModule } from './challenge/challenge.module';
 import { Challenge } from './entities/challenge.entity';
-
+import { MailerModule } from '@nestjs-modules/mailer';
+import { EjsAdapter } from '@nestjs-modules/mailer/dist/adapters/ejs.adapter';
+import * as nodemailer from 'nodemailer';
 @Module({
   imports: [
+    MailerModule.forRoot({
+      transport: nodemailer.createTransport({
+        host: 'smtp.yandex.ru',
+        port: 465,
+        // logger: true,
+        // debug: true,
+        ignoreTLS: true, // add this
+        // secure: true, // true for 465, false for other ports
+        auth: {
+          user: 'gassd.test', // generated ethereal user
+          pass: 'EuwKe9y8ZB&r', // generated ethereal password
+        },
+      }),
+      // transport:
+      // 'smtps://gassd.test@yandex.ru:EuwKe9y8ZB&r@smtp.yandex.ru?tls=false',
+      defaults: {
+        from: 'Test testov',
+      },
+
+      template: {
+        adapter: new EjsAdapter(),
+        options: {
+          strict: true,
+        },
+      },
+    }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'static'),
     }),
