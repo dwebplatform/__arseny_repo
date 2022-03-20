@@ -9,14 +9,17 @@ import {
   UseInterceptors,
   UploadedFile,
   UseGuards,
+  UploadedFiles,
+  Req,
+  Request,
+
 } from '@nestjs/common';
 import { User } from './../entities/user.entity';
 import { CreateUserDto } from './dtos/createUser.dto';
 import { UserService } from './../auth/user.service';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
-import { FileInterceptor } from '@nestjs/platform-express';
 
-import { createStorage } from './utils/UploadUtils';
+import {  formidableUpload } from './utils/UploadUtils';
 import { config } from './../config';
 import { UpdateUserDto } from 'src/user/dtos/updateUser.dto';
 import { User as UserDecorator } from '../decorators/user.decorator';
@@ -24,7 +27,7 @@ import { Role, Roles } from '../user/roles';
 import { AuthGuard } from './../guars/auth.guard';
 
 class AvatarUploadedEvent {
-  constructor(public id: number, public avatarUrl: string) {}
+  constructor(public id: number, public avatarUrl: string) { }
 }
 
 @Controller('user')
@@ -32,23 +35,22 @@ export class UserController {
   constructor(
     private readonly userService: UserService,
     private readonly eventEmitter: EventEmitter2,
-  ) {}
+  ) { }
 
-  @Post('/upload-avatar/:id')
-  @UseInterceptors(FileInterceptor('file', createStorage()))
-  uploadAvater(@UploadedFile() file, @Param('id') id: number) {
-    //*1
-    const avatarUrl = `/${config.storeImagePath}/${file.filename}`;
-    //*2
-    this.eventEmitter.emit(
-      'avatar.uploaded',
-      new AvatarUploadedEvent(id, avatarUrl),
-    );
+  @Post('upload-avatar/:id')
+  async uploadAvatar(@Req() req: Request, @Param('id') id) {
+    try {
+      const { newPath } = await formidableUpload(req, id) as any;
 
+      this.eventEmitter.emit('avatar.uploaded', new AvatarUploadedEvent(id, newPath));
+    } catch (err) {
+      return {
+        err
+      }
+    }
     return {
-      status: 'ok',
-      msg: 'Uploaded',
-    };
+      status: "ok!!"
+    }
   }
 
   @OnEvent('avatar.uploaded')
@@ -102,3 +104,5 @@ export class UserController {
     }
   }
 }
+
+
