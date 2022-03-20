@@ -8,6 +8,7 @@ import {
   HttpStatus,
   UseInterceptors,
   UploadedFile,
+  UseGuards,
 } from '@nestjs/common';
 import { User } from './../entities/user.entity';
 import { CreateUserDto } from './dtos/createUser.dto';
@@ -18,6 +19,9 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { createStorage } from './utils/UploadUtils';
 import { config } from './../config';
 import { UpdateUserDto } from 'src/user/dtos/updateUser.dto';
+import { User as UserDecorator } from '../decorators/user.decorator';
+import { Role, Roles } from '../user/roles';
+import { AuthGuard } from './../guars/auth.guard';
 
 class AvatarUploadedEvent {
   constructor(public id: number, public avatarUrl: string) {}
@@ -86,5 +90,15 @@ export class UserController {
     return {
       status: 'ok',
     };
+  }
+
+  @Get('/who-am-i')
+  @Roles(Role.USER)
+  @UseGuards(AuthGuard)
+  whoAmI(@UserDecorator() user: any){
+    return {
+      status:"ok",
+      user: user,
+    }
   }
 }

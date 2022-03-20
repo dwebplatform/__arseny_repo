@@ -24,8 +24,6 @@ import { AuthGuard } from './../guars/auth.guard';
 import { Role, Roles } from '../user/roles';
 import { MailerService } from '@nestjs-modules/mailer';
 
-import { User } from '../decorators/user.decorator';
-
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -72,15 +70,7 @@ export class AuthController {
       msg:"Sign out successfully"
     }
   }
-  @Get('/who-am-i')
-  @Roles(Role.USER)
-  @UseGuards(AuthGuard)
-  whoAmI(@User() user: any){
-    return {
-      status:"ok",
-      user: user,
-    }
-  }
+
   //* зарегаться в первый раз
   @Post('/sign-up')
   async signUp(
