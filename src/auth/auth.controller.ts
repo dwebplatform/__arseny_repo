@@ -59,10 +59,9 @@ export class AuthController {
     };
   }
 
- 
+
   @Post('/sign-out')
-  signOut(
-    @Res({ passthrough: true }) res: Response){
+  signOut(@Res({ passthrough: true }) res: Response) {
     //@ts-ignore
     res.clearCookie('refreshToken');
     return {
@@ -101,6 +100,7 @@ export class AuthController {
     });
     return { accessToken, expiresIn };
   }
+
   //*войти в сущ учетку
   @Post('/sign-in')
   async signIn(
