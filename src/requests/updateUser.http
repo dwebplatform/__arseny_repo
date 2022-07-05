@@ -1,0 +1,12 @@
+
+post http://localhost:5000/user/update/4
+Content-Type: application/json
+
+{
+  "name":"Sam",
+  "email":"test@mail.ru",
+  "password":"12345678",
+  "avatar":"http://avatar.com",
+  "score":1,
+  "subscriptionType":"FREE"
+}

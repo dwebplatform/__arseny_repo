@@ -24,6 +24,9 @@ export class User extends BaseEntity {
   @Column({ default: 0 })
   score: number;
 
+  @Column({default: 1 })
+  level: number;
+
   @Column({ default: SubscriptionType.FREE })
   subscriptionType: string;
 }

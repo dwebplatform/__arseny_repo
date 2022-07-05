@@ -12,6 +12,7 @@ async function  createFolter(dir:string) {
   });
   });
 }
+
 export const formidableUpload = async (req: Request, id:number)=>{
   const form  = new formidable.IncomingForm();
   return new Promise((resolve,reject)=>{
@@ -39,14 +40,3 @@ export const formidableUpload = async (req: Request, id:number)=>{
   })
 }
 
-export const createStorage = () => {
-  const storage = {
-    storage: diskStorage({
-      destination: `./uploads`,
-      filename: (req, file, cb) => {
-        cb(null, file.originalname)
-      },
-    }),
-  };
-  return storage;
-};

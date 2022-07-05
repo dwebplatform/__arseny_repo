@@ -6,21 +6,20 @@ import {
   Post,
   HttpException,
   HttpStatus,
-  UseInterceptors,
-  UploadedFile,
-  UploadedFiles,
   Req,
   Request,
+  UseGuards,
 
 } from '@nestjs/common';
-import { User } from './../entities/user.entity';
 import { CreateUserDto } from './dtos/createUser.dto';
 import { UserService } from './../auth/user.service';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 
+import { User } from '../decorators/user.decorator';
 import {  formidableUpload } from './utils/UploadUtils';
-import { config } from './../config';
 import { UpdateUserDto } from 'src/user/dtos/updateUser.dto';
+import { Role, Roles } from './roles';
+import { AuthGuard } from '../guars/auth.guard';
 
 class AvatarUploadedEvent {
   constructor(public id: number, public avatarUrl: string) { }
@@ -32,12 +31,21 @@ export class UserController {
     private readonly userService: UserService,
     private readonly eventEmitter: EventEmitter2,
   ) { }
+  
+  @Get('/who-am-i')
+  @Roles(Role.USER)
+  @UseGuards(AuthGuard)
+  whoAmI(@User() user: any){
+    return {
+      status:"ok",
+      user: user,
+    }
+  }
 
   @Post('upload-avatar/:id')
   async uploadAvatar(@Req() req: Request, @Param('id') id) {
     try {
       const { newPath } = await formidableUpload(req, id) as any;
-
       this.eventEmitter.emit('avatar.uploaded', new AvatarUploadedEvent(id, newPath));
     } catch (err) {
       return {
@@ -71,19 +79,10 @@ export class UserController {
     }
   }
 
-  @Get('/info/:id')
-  async userInfo(@Param('id') id: number) {
-    //* get user info:
-    const user = await User.findOne({ where: { id: id } });
-
-    return {
-      ...user,
-    };
-  }
 
   @Post('/update/:id')
   async updateUser(@Param('id') id: number, @Body() body: UpdateUserDto) {
-    //
+    
     const user = await this.userService.updateUser(id, body);
     return {
       status: 'ok',

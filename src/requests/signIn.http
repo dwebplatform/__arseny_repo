@@ -1,0 +1,9 @@
+
+post http://localhost:5000/auth/sign-in
+Content-Type: application/json
+
+{
+  "name":"Sam",
+  "email":"test@mail.ru",
+  "password":"12345678"
+}

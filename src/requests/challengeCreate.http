@@ -1,0 +1,14 @@
+post http://localhost:5000/challenge/create
+Content-Type: application/json
+
+{
+  "type":"TranslateByBlocks",
+  "payload":{
+    "from":"",
+    "to":"",
+    "wrong_words":[],
+    "dictionary":[],
+    "correct_tokens":[],
+    "expression_list":[]
+  }
+}

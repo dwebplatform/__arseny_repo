@@ -16,15 +16,15 @@ import {
 import { UserService } from './user.service';
 import { AuthService } from './auth.service';
 
-import { comparePassword, verifyToken } from './utils/secureUtils';
+import { comparePassword } from './utils/secureUtils';
 
-import * as jwt from 'jsonwebtoken';
 import { UserExistError } from './utils/customErrors';
 import { AuthGuard } from './../guars/auth.guard';
 import { Role, Roles } from '../user/roles';
 import { MailerService } from '@nestjs-modules/mailer';
-
 import { User } from '../decorators/user.decorator';
+import { UserSignInDto } from './dtos/userSignIn.dto';
+
 
 @Controller('auth')
 export class AuthController {
@@ -86,7 +86,7 @@ export class AuthController {
   async signUp(
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
-    @Body() body: { password: string; email: string },
+    @Body() body: UserSignInDto,
   ) {
     let user = null;
     try {
@@ -109,6 +109,7 @@ export class AuthController {
       sameSite: 'strict',
       httpOnly: true,
     });
+    
     return { accessToken, expiresIn };
   }
   //*войти в сущ учетку
@@ -146,6 +147,7 @@ export class AuthController {
       accessToken,
       expiresIn,
     } = await this.authService.generateAccessToken(user);
+
     const { refreshToken } = await this.authService.generateRefreshToken(user);
     //* store in session request token:
     //@ts-ignore
@@ -153,6 +155,8 @@ export class AuthController {
       sameSite: 'strict',
       httpOnly: true,
     });
+    //* send email with token if he came in then do what you should do:
+    
     return {
       accessToken,
       expiresIn,

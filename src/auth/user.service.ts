@@ -2,11 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from 'src/user/dtos/createUser.dto';
 import { UpdateUserDto } from 'src/user/dtos/updateUser.dto';
 import { User } from './../entities/user.entity';
+import { UserSignInDto } from './dtos/userSignIn.dto';
 import { UserExistError } from './utils/customErrors';
 import { hashPassword, verifyToken } from './utils/secureUtils';
 
 @Injectable()
 export class UserService {
+  
   async getUserByRefreshToken(refreshToken: string): Promise<any> {
     //*1
     const user = (await verifyToken(refreshToken)) as { id: number };
@@ -20,7 +22,7 @@ export class UserService {
   async getUserByEmail(email: string) {
     return await User.findOne({ where: { email: email } });
   }
-  async createUserFromRequest(body: { email: string; password: string }) {
+  async createUserFromRequest(body: UserSignInDto) {
     //*1
     const user = new User();
     //*2
@@ -28,10 +30,11 @@ export class UserService {
       where: { email: body.email },
     });
     if (userWithSameEmail) {
-      throw new UserExistError('пользователь с таким email уже существует');
+      throw new UserExistError('Пользователь с таким email уже существует');
     }
     //*3
     user.email = body.email;
+    user.name = body.name;
     const hashedPassword = await hashPassword(body.password);
     user.password = hashedPassword;
     //*4
