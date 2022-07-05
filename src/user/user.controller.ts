@@ -6,9 +6,12 @@ import {
   Post,
   HttpException,
   HttpStatus,
+  UseInterceptors,
+  UploadedFile,
+  UseGuards,
+  UploadedFiles,
   Req,
   Request,
-  UseGuards,
 
 } from '@nestjs/common';
 import { CreateUserDto } from './dtos/createUser.dto';
@@ -18,8 +21,9 @@ import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { User } from '../decorators/user.decorator';
 import {  formidableUpload } from './utils/UploadUtils';
 import { UpdateUserDto } from 'src/user/dtos/updateUser.dto';
-import { Role, Roles } from './roles';
-import { AuthGuard } from '../guars/auth.guard';
+import { User as UserDecorator } from '../decorators/user.decorator';
+import { Role, Roles } from '../user/roles';
+import { AuthGuard } from './../guars/auth.guard';
 
 class AvatarUploadedEvent {
   constructor(public id: number, public avatarUrl: string) { }
@@ -32,15 +36,6 @@ export class UserController {
     private readonly eventEmitter: EventEmitter2,
   ) { }
   
-  @Get('/who-am-i')
-  @Roles(Role.USER)
-  @UseGuards(AuthGuard)
-  whoAmI(@User() user: any){
-    return {
-      status:"ok",
-      user: user,
-    }
-  }
 
   @Post('upload-avatar/:id')
   async uploadAvatar(@Req() req: Request, @Param('id') id) {
@@ -87,6 +82,16 @@ export class UserController {
     return {
       status: 'ok',
     };
+  }
+
+  @Get('/who-am-i')
+  @Roles(Role.USER)
+  @UseGuards(AuthGuard)
+  whoAmI(@UserDecorator() user: any){
+    return {
+      status:"ok",
+      user: user,
+    }
   }
 }
 

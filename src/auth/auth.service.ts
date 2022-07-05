@@ -5,7 +5,7 @@ import { generateToken } from './utils/secureUtils';
 @Injectable()
 export class AuthService {
   async generateAccessToken(user: User) {
-    let expiresIn = Math.floor(Date.now() / 1000) + 2 * 60;
+    const expiresIn = Math.floor(Date.now() / 1000) + 2 * 60;
     const accessToken = await generateToken(
       {
         id: user.id,
@@ -17,7 +17,7 @@ export class AuthService {
     return { accessToken, expiresIn };
   }
   async generateRefreshToken(user: User) {
-    let expiresIn = Math.floor(Date.now() / 1000) + 24 * 60 * 60;
+    const expiresIn = Math.floor(Date.now() / 1000) + 24 * 60 * 60;
     const refreshToken = await generateToken(
       {
         id: user.id,

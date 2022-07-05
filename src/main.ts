@@ -5,9 +5,10 @@ import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const { APP_PORT, FRONT_HOST } = process.env;
 
   const options = {
-    origin: 'http://localhost:4444',
+    origin: FRONT_HOST,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     preflightContinue: false,
     cors: true,
@@ -15,9 +16,12 @@ async function bootstrap() {
       'Origin, X-Requested-With, Content-Type, Accept, Authorization',
     credentials: true,
   };
+
   app.enableCors(options);
   app.use(cookieParser());
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
-  await app.listen(5000);
+
+  await app.listen(APP_PORT);
 }
+
 bootstrap();

@@ -4,6 +4,7 @@ interface IConfig {
   storeImagePath: string;
   staticPath: string;
 }
+
 export const config: IConfig = {
   privateKey: 'kitty_mitty',
   saltRound: 10,
