@@ -57,7 +57,7 @@ export class AuthController {
   getProtectedByGuards() {
     return {
       status: 'ok',
-      msg: 'Hello there',
+      message: 'Hello there',
     };
   }
 
@@ -68,7 +68,7 @@ export class AuthController {
     res.clearCookie('refreshToken');
     return {
       status:"ok",
-      msg:"Sign out successfully"
+      message:"Sign out successfully"
     }
   }
 
@@ -85,7 +85,7 @@ export class AuthController {
     } catch (err) {
       if (err instanceof UserExistError) {
         throw new HttpException(
-          { status: 'error', msg: 'Пользователь с таким email уже существует' },
+          { status: 'error', message: 'Пользователь с таким email уже существует' },
           HttpStatus.BAD_REQUEST,
         );
       }
@@ -100,7 +100,6 @@ export class AuthController {
       sameSite: 'strict',
       httpOnly: true,
     });
-    
     return { accessToken, expiresIn };
   }
 
@@ -116,7 +115,7 @@ export class AuthController {
       throw new HttpException(
         {
           status: 'error',
-          msg: 'Не удалось найти пользователя с такими данными',
+          message: 'Не удалось найти пользователя с такими данными',
         },
         HttpStatus.BAD_REQUEST,
       );
@@ -129,7 +128,7 @@ export class AuthController {
       throw new HttpException(
         {
           status: 'error',
-          msg: 'Не удалось найти пользователя с такими данными',
+          message: 'Не удалось найти пользователя с такими данными',
         },
         HttpStatus.BAD_REQUEST,
       );
@@ -148,7 +147,7 @@ export class AuthController {
       httpOnly: true,
     });
     //* send email with token if he came in then do what you should do:
-    
+
     return {
       accessToken,
       expiresIn,

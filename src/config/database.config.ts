@@ -13,5 +13,5 @@ export const DBconfig: TypeOrmModuleOptions = {
   password: 'TurningPoint795381',
   database: 'k_learn',
   entities: [User, Challenge],
-  synchronize: false,
+  synchronize: true,
 };

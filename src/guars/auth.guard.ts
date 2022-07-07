@@ -47,7 +47,7 @@ export class AuthGuard implements CanActivate {
       if (err instanceof jwt.TokenExpiredError) {
         //* время токена истекло, надо стучаться в getAccessTokenByRefresh
         throw new HttpException(
-          { status: 'error', msg: 'время токена истекло' },
+          { status: 'error', message: 'время токена истекло' },
           HttpStatus.UNAUTHORIZED,
         );
       }
