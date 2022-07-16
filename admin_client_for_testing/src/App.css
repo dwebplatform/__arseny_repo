@@ -1,0 +1,48 @@
+*{
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+.level-admin{
+  width: 600px;
+  margin: 0 auto;
+}
+.level-element{
+  width: 100%;
+  margin-bottom: 8px;
+  border: 1px solid #eee;
+  padding: 8px;
+}
+.add-stage{
+  margin-bottom: 8px;
+}
+.add-stage-btn{
+  cursor: pointer;
+  background-color: skyblue;
+  border:none;
+  border-radius: 15px;
+  width:30px;
+  height: 30px;
+}
+
+
+.level-stages{
+  display: flex;
+  flex-flow:column;
+}
+.add-challenge-form{
+  display: flex;
+  flex-flow: column;
+  gap: 8px;
+}
+
+.stage{
+  border: 1px solid lightgreen;
+  margin-bottom: 8px;
+  padding: 8px;
+}
+.stage-challenge{
+  border: 1px solid #eee;
+  padding: 8px;
+  margin-bottom: 8px;
+}
