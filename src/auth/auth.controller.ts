@@ -54,7 +54,7 @@ export class AuthController {
   getProtectedByGuards() {
     return {
       status: 'ok',
-      msg: 'Hello there',
+      message: 'Hello there',
     };
   }
 
@@ -86,7 +86,6 @@ export class AuthController {
       sameSite: 'strict',
       httpOnly: true,
     });
-    
     return { accessToken, expiresIn };
   }
 
