@@ -3,47 +3,44 @@ import {
   Get,
   Post,
   Body,
-  HttpException,
-  HttpStatus,
-  Request,
-  Headers,
-  Response,
   Req,
   Res,
   UseGuards,
+  UseInterceptors
 } from '@nestjs/common';
-
+import {  Request, Response } from "express";
 import { UserService } from './user.service';
 import { AuthService } from './auth.service';
 
-import { comparePassword } from './utils/secureUtils';
 
-import { UserExistError } from './utils/customErrors';
 import { AuthGuard } from './../guars/auth.guard';
 import { Role, Roles } from '../user/roles';
 import { MailerService } from '@nestjs-modules/mailer';
 import { User } from '../decorators/user.decorator';
 import { UserSignInDto } from './dtos/userSignIn.dto';
+import { CredentialsService } from './credentials.service';
+import { AuthInterceptor } from './../interceptors/auth.interceptor';
+
 
 
 @Controller('auth')
+@UseInterceptors(AuthInterceptor)
 export class AuthController {
   constructor(
     private userService: UserService,
     private authService: AuthService,
     private readonly mailerService: MailerService,
+    private credentialsService: CredentialsService
   ) {}
 
 
   @Post('/access-by-refresh')
   async getAccessTokenByRefresh(@Req() request: Request) {
     //* берем рефреш из сессии, парсим, находим пользователя создаем по нему новый accessToken с временем жизни отдаем обратно
-    //@ts-ignore
     const { refreshToken } = request.cookies;
     const user = await this.userService.getUserByRefreshToken(
       refreshToken,
     );
-    //* generate new accessToken
     const {
       accessToken,
       expiresIn,
@@ -64,11 +61,10 @@ export class AuthController {
 
   @Post('/sign-out')
   signOut(@Res({ passthrough: true }) res: Response) {
-    //@ts-ignore
     res.clearCookie('refreshToken');
     return {
       status:"ok",
-      msg:"Sign out successfully"
+      msg: "Sign out successfully"
     }
   }
 
@@ -79,23 +75,13 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
     @Body() body: UserSignInDto,
   ) {
-    let user = null;
-    try {
-      user = await this.userService.createUserFromRequest(body);
-    } catch (err) {
-      if (err instanceof UserExistError) {
-        throw new HttpException(
-          { status: 'error', msg: 'Пользователь с таким email уже существует' },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-    }
+   const user = await this.userService.createUserFromRequest(body);
     const {
       accessToken,
       expiresIn,
     } = await this.authService.generateAccessToken(user);
     const { refreshToken } = await this.authService.generateRefreshToken(user);
-    //@ts-ignore
+    
     res.cookie('refreshToken', refreshToken, {
       sameSite: 'strict',
       httpOnly: true,
@@ -110,30 +96,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
     @Body() body: { email: string; password: string },
   ) {
-    //* найти юзера по почте, сравнить plainPassword, с hashPassword-> если все ок то создать accessToken, refreshToken
-    const user = await this.userService.getUserByEmail(body.email);
-    if (!user) {
-      throw new HttpException(
-        {
-          status: 'error',
-          msg: 'Не удалось найти пользователя с такими данными',
-        },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-    const isPasswordMathed = await comparePassword(
-      body.password,
-      user.password,
-    );
-    if (!isPasswordMathed) {
-      throw new HttpException(
-        {
-          status: 'error',
-          msg: 'Не удалось найти пользователя с такими данными',
-        },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+    const user = await this.userService.getSignedUser({email:body.email, password: body.password})
     //* create access token, create refresh  token
     const {
       accessToken,
@@ -142,13 +105,11 @@ export class AuthController {
 
     const { refreshToken } = await this.authService.generateRefreshToken(user);
     //* store in session request token:
-    //@ts-ignore
     res.cookie('refreshToken', refreshToken, {
       sameSite: 'strict',
       httpOnly: true,
     });
     //* send email with token if he came in then do what you should do:
-    
     return {
       accessToken,
       expiresIn,

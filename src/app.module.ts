@@ -9,19 +9,22 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { ChallengeModule } from './challenge/challenge.module';
-import { DBconfig } from './config/database.config';
-import { MailerConfig } from './config/mailer.config';
-import { ServerStaticConfig } from './config/serverStatic.config';
+
+import { config } from './config';
+
+
+import { LevelModule } from './level/level.module';
 @Module({
   imports: [
     ConfigModule.forRoot(),
-    MailerModule.forRoot(MailerConfig),
-    ServeStaticModule.forRoot(ServerStaticConfig),
+    MailerModule.forRoot(config.mailerOptions),
+    ServeStaticModule.forRoot(config.serverStatic),
     EventEmitterModule.forRoot(),
     AuthModule,
-    TypeOrmModule.forRoot(DBconfig),
+    TypeOrmModule.forRoot(config.db),
     UserModule,
     ChallengeModule,
+    LevelModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -3,57 +3,69 @@ import { CreateUserDto } from 'src/user/dtos/createUser.dto';
 import { UpdateUserDto } from 'src/user/dtos/updateUser.dto';
 import { User } from './../entities/user.entity';
 import { UserSignInDto } from './dtos/userSignIn.dto';
-import { UserExistError } from './utils/customErrors';
-import { hashPassword, verifyToken } from './utils/secureUtils';
+import {UserExistError} from '../errors/UserExistError';
+
+import {UserNotFoundError} from '../errors/UserNotFoundError'
+import { CredentialsService } from './credentials.service';
 
 @Injectable()
 export class UserService {
-  
+  constructor(private readonly credentialsService:CredentialsService){}
   async getUserByRefreshToken(refreshToken: string): Promise<any> {
-    //*1
-    const user = (await verifyToken(refreshToken)) as { id: number };
-    //*2
+    const user = (await this.credentialsService.verifyToken(refreshToken)) as { id: number };
     const userInstance = await User.findOne(user.id);
     return {
       ...userInstance,
     };
   }
 
+  async getSignedUser({email, password}:{email:string, password: string}){
+    const user = await this.getUserByEmail(email);
+    
+    const isPasswordMathed = await this.credentialsService.comparePassword(
+      password,
+      user.password,
+    );
+    if (!isPasswordMathed) {
+      throw new UserNotFoundError("Не удалось найти такого пользователя");
+    }
+    return user;
+  }
   async getUserByEmail(email: string) {
-    return await User.findOne({ where: { email: email } });
+    const user  = await User.findOne({where: {email}});
+    if(!user){
+      throw new UserNotFoundError("Не удалось найти такого пользователя");
+    }
+    return user;
   }
   async createUserFromRequest(body: UserSignInDto) {
-    //*1
     const user = new User();
-    //*2
     const userWithSameEmail = await User.findOne({
       where: { email: body.email },
     });
     if (userWithSameEmail) {
       throw new UserExistError('Пользователь с таким email уже существует');
     }
-    //*3
-    user.email = body.email;
+    
     user.name = body.name;
-    const hashedPassword = await hashPassword(body.password);
-    user.password = hashedPassword;
-    //*4
+    user.email = body.email;
+    user.password = await this.credentialsService.hashPassword(body.password);
+
     await user.save();
     return user;
   }
 
   async createUser(userDto: CreateUserDto): Promise<User> {
-    //*1
     const user = new User();
+
     user.name = userDto.name;
     user.email = userDto.email;
-    user.password = await hashPassword(userDto.password);
+    user.password = await this.credentialsService.hashPassword(userDto.password);
     user.avatar = userDto.avatar;
     user.score = userDto.score;
     user.subscriptionType = userDto.subscriptionType;
-    //*2
     await user.save();
-    //*3
+
     return user;
   }
 
@@ -76,7 +88,6 @@ export class UserService {
   }
 
   async updateUser(id: number, updateUserDto: UpdateUserDto): Promise<User> {
-    //*1
     const user = await User.findOne({ where: { id: id } });
     for (const field in updateUserDto) {
       user[field] = updateUserDto[field];
